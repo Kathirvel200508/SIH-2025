@@ -1,0 +1,540 @@
+.page {
+  --gray-rgb: 0, 0, 0;
+  --gray-alpha-200: rgba(var(--gray-rgb), 0.08);
+  --gray-alpha-100: rgba(var(--gray-rgb), 0.05);
+
+  --button-primary-hover: #383838;
+  --button-secondary-hover: #f2f2f2;
+
+  display: grid;
+  grid-template-rows: 20px 1fr 20px;
+  align-items: center;
+  justify-items: center;
+  min-height: 100svh;
+  padding: 20px;
+  gap: 32px;
+  font-family: var(--font-geist-sans);
+}
+
+@media (min-width: 640px) {
+  .page {
+    padding: 40px;
+    gap: 48px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .page {
+    padding: 80px;
+    gap: 64px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .page {
+    --gray-rgb: 255, 255, 255;
+    --gray-alpha-200: rgba(var(--gray-rgb), 0.145);
+    --gray-alpha-100: rgba(var(--gray-rgb), 0.06);
+
+    --button-primary-hover: #ccc;
+    --button-secondary-hover: #1a1a1a;
+  }
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  grid-row-start: 2;
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (min-width: 640px) {
+  .main {
+    gap: 32px;
+  }
+}
+
+/* New styles for a polished UI */
+.card {
+  width: 100%;
+  max-width: 720px;
+  background: var(--background);
+  border: 1px solid var(--gray-alpha-200);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+@media (min-width: 640px) {
+  .card {
+    padding: 24px;
+  }
+}
+
+.card h2 {
+  margin: 0 0 12px 0;
+  font-size: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .card h2 {
+    margin: 0 0 16px 0;
+    font-size: 1.5rem;
+  }
+}
+
+.form {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .form {
+    gap: 16px;
+  }
+}
+
+.field {
+  display: grid;
+  gap: 4px;
+}
+
+@media (min-width: 640px) {
+  .field {
+    gap: 6px;
+  }
+}
+
+.label {
+  font-size: 13px;
+  color: rgba(var(--gray-rgb), 0.8);
+  font-weight: 500;
+}
+
+@media (min-width: 640px) {
+  .label {
+    font-size: 14px;
+  }
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  border: 1px solid var(--gray-alpha-200);
+  background: var(--background);
+  color: var(--foreground);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+@media (min-width: 640px) {
+  .input,
+  .textarea,
+  .select {
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+}
+
+.textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+@media (min-width: 640px) {
+  .textarea {
+    min-height: 92px;
+  }
+}
+
+.button {
+  appearance: none;
+  border: 1px solid transparent;
+  background: var(--foreground);
+  color: var(--background);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  width: fit-content;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 640px) {
+  .button {
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-size: 16px;
+    min-height: 44px;
+  }
+}
+
+.button.secondary {
+  background: transparent;
+  color: var(--foreground);
+  border-color: var(--gray-alpha-200);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .button:hover {
+    background: var(--button-primary-hover);
+  }
+  .button.secondary:hover {
+    background: var(--button-secondary-hover);
+  }
+}
+
+/* Category chips */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+@media (min-width: 640px) {
+  .chips {
+    gap: 8px;
+  }
+}
+
+.chip {
+  appearance: none;
+  border-radius: 999px;
+  padding: 4px 10px;
+  border: 1px solid var(--gray-alpha-200);
+  background: var(--gray-alpha-100);
+  color: var(--foreground);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s ease;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 640px) {
+  .chip {
+    padding: 6px 12px;
+    font-size: 14px;
+    min-height: 36px;
+  }
+}
+
+.chip.selected {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .chip:hover:not(.selected) {
+    border-color: rgba(var(--gray-rgb), 0.25);
+  }
+}
+
+.main ol {
+  font-family: var(--font-geist-mono);
+  padding-left: 0;
+  margin: 0;
+  font-size: 14px;
+  line-height: 24px;
+  letter-spacing: -0.01em;
+  list-style-position: inside;
+}
+
+.main li:not(:last-of-type) {
+  margin-bottom: 8px;
+}
+
+.main code {
+  font-family: inherit;
+  background: var(--gray-alpha-100);
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.ctas {
+  display: flex;
+  gap: 16px;
+}
+
+.ctas a {
+  appearance: none;
+  border-radius: 128px;
+  height: 48px;
+  padding: 0 20px;
+  border: none;
+  border: 1px solid transparent;
+  transition:
+    background 0.2s,
+    color 0.2s,
+    border-color 0.2s;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+.tableWrap {
+  width: 100%;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 8px;
+  border: 1px solid var(--gray-alpha-200);
+}
+
+@media (max-width: 768px) {
+  .tableWrap {
+    border: none;
+    border-radius: 0;
+  }
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  border: 1px solid var(--gray-alpha-200);
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .table {
+    border: none;
+    border-radius: 0;
+    font-size: 13px;
+  }
+}
+
+.thead th {
+  text-align: left;
+  font-size: 12px;
+  padding: 8px 10px;
+  background: var(--gray-alpha-100);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+@media (min-width: 640px) {
+  .thead th {
+    font-size: 13px;
+    padding: 12px 14px;
+  }
+}
+
+.tbody td {
+  padding: 8px 10px;
+  border-top: 1px solid var(--gray-alpha-200);
+  vertical-align: top;
+}
+
+@media (min-width: 640px) {
+  .tbody td {
+    padding: 12px 14px;
+  }
+}
+
+a.primary {
+  background: var(--foreground);
+  color: var(--background);
+  gap: 8px;
+}
+
+a.secondary {
+  border-color: var(--gray-alpha-200);
+  min-width: 158px;
+}
+
+.footer {
+  grid-row-start: 3;
+  display: flex;
+  gap: 24px;
+}
+
+.footer a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer img {
+  flex-shrink: 0;
+}
+
+/* Enable hover only on non-touch devices */
+@media (hover: hover) and (pointer: fine) {
+  a.primary:hover {
+    background: var(--button-primary-hover);
+    border-color: transparent;
+  }
+
+  a.secondary:hover {
+    background: var(--button-secondary-hover);
+    border-color: transparent;
+  }
+
+  .footer a:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+}
+
+/* Mobile-first responsive design */
+@media (max-width: 640px) {
+  .page {
+    padding: 16px;
+    padding-bottom: 80px;
+  }
+
+  .main {
+    align-items: stretch;
+    gap: 20px;
+  }
+
+  .card {
+    padding: 16px;
+    margin: 0;
+  }
+
+  .card h2 {
+    margin-bottom: 12px;
+    font-size: 1.125rem;
+  }
+
+  .form {
+    gap: 12px;
+  }
+
+  .field {
+    gap: 4px;
+  }
+
+  .label {
+    font-size: 13px;
+  }
+
+  .input,
+  .textarea,
+  .select {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 10px 12px;
+  }
+
+  .button {
+    font-size: 14px;
+    padding: 10px 16px;
+    min-height: 44px;
+    width: 100%;
+  }
+
+  .chips {
+    gap: 6px;
+  }
+
+  .chip {
+    font-size: 13px;
+    padding: 6px 12px;
+    min-height: 36px;
+  }
+
+  .table {
+    font-size: 13px;
+  }
+
+  .thead th {
+    font-size: 11px;
+    padding: 8px 6px;
+  }
+
+  .tbody td {
+    padding: 8px 6px;
+  }
+
+  .main ol {
+    text-align: left;
+    padding-left: 20px;
+  }
+
+  .ctas {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .ctas a {
+    font-size: 14px;
+    height: 44px;
+    padding: 0 16px;
+    width: 100%;
+  }
+
+  a.secondary {
+    min-width: auto;
+  }
+
+  .footer {
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+}
+
+/* Tablet styles */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .page {
+    padding: 32px;
+  }
+
+  .main {
+    gap: 28px;
+  }
+
+  .card {
+    padding: 20px;
+  }
+}
+
+/* Desktop styles */
+@media (min-width: 1025px) {
+  .page {
+    padding: 80px;
+    gap: 64px;
+  }
+
+  .main {
+    gap: 32px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .logo {
+    filter: invert();
+  }
+}
+
