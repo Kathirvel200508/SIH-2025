@@ -1,11 +1,12 @@
 import Head from "next/head";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import styles from "@/styles/Home.module.css";
 import { Navbar } from "@/shared/components/Navbar";
 import { useLanguage } from "@/shared/language/LanguageContext";
 import { useUser } from "@/shared/user/UserContext";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
+// const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
 
 type LeaderboardEntry = {
   userId: string;
@@ -162,8 +163,8 @@ export default function Leaderboard() {
         }
         
         setStats(mockStats);
-      } catch (err: any) {
-        setError(err.message || "Failed to load leaderboard");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to load leaderboard");
       } finally {
         setLoading(false);
       }
@@ -204,7 +205,7 @@ export default function Leaderboard() {
         <title>{t("leaderboard")} - {t("citizenPortal")}</title>
         <meta name="description" content="View top contributors and civic engagement statistics" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
       </Head>
       <Navbar />
       <div className={styles.page}>
@@ -230,59 +231,59 @@ export default function Leaderboard() {
                 <h2>{t("topContributors")}</h2>
                 <div style={{ 
                   display: "grid", 
-                  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", 
-                  gap: "16px",
-                  marginBottom: "24px"
+                  gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", 
+                  gap: "12px",
+                  marginBottom: "20px"
                 }}>
                   <div style={{ 
-                    padding: "16px", 
+                    padding: "12px", 
                     background: "#1e293b", 
                     borderRadius: "8px",
                     textAlign: "center"
                   }}>
-                    <div style={{ fontSize: "24px", fontWeight: "bold", color: "#60a5fa" }}>
+                    <div style={{ fontSize: "20px", fontWeight: "bold", color: "#60a5fa" }}>
                       {stats.totalUsers}
                     </div>
-                    <div style={{ fontSize: "14px", color: "#94a3b8" }}>
+                    <div style={{ fontSize: "12px", color: "#94a3b8" }}>
                       Active Users
                     </div>
                   </div>
                   <div style={{ 
-                    padding: "16px", 
+                    padding: "12px", 
                     background: "#1e293b", 
                     borderRadius: "8px",
                     textAlign: "center"
                   }}>
-                    <div style={{ fontSize: "24px", fontWeight: "bold", color: "#60a5fa" }}>
+                    <div style={{ fontSize: "20px", fontWeight: "bold", color: "#60a5fa" }}>
                       {stats.totalReports}
                     </div>
-                    <div style={{ fontSize: "14px", color: "#94a3b8" }}>
+                    <div style={{ fontSize: "12px", color: "#94a3b8" }}>
                       {t("totalReports")}
                     </div>
                   </div>
                   <div style={{ 
-                    padding: "16px", 
+                    padding: "12px", 
                     background: "#1e293b", 
                     borderRadius: "8px",
                     textAlign: "center"
                   }}>
-                    <div style={{ fontSize: "24px", fontWeight: "bold", color: "#10b981" }}>
+                    <div style={{ fontSize: "20px", fontWeight: "bold", color: "#10b981" }}>
                       {stats.totalResolved}
                     </div>
-                    <div style={{ fontSize: "14px", color: "#94a3b8" }}>
+                    <div style={{ fontSize: "12px", color: "#94a3b8" }}>
                       {t("resolvedReports")}
                     </div>
                   </div>
                   <div style={{ 
-                    padding: "16px", 
+                    padding: "12px", 
                     background: "#1e293b", 
                     borderRadius: "8px",
                     textAlign: "center"
                   }}>
-                    <div style={{ fontSize: "24px", fontWeight: "bold", color: "#f59e0b" }}>
+                    <div style={{ fontSize: "20px", fontWeight: "bold", color: "#f59e0b" }}>
                       {stats.totalPending}
                     </div>
-                    <div style={{ fontSize: "14px", color: "#94a3b8" }}>
+                    <div style={{ fontSize: "12px", color: "#94a3b8" }}>
                       {t("pendingReports")}
                     </div>
                   </div>
@@ -356,7 +357,7 @@ export default function Leaderboard() {
                 {stats.leaderboard.length === 0 ? (
                   <p>No data available</p>
                 ) : (
-                  <div className={styles.tableWrap}>
+                  <div className={`${styles.tableWrap} ${styles.mobileTableCard}`}>
                     <table className={styles.table}>
                       <thead className={styles.thead}>
                         <tr>
@@ -428,6 +429,70 @@ export default function Leaderboard() {
                         })}
                       </tbody>
                     </table>
+
+                    {/* Mobile Cards for Leaderboard */}
+                    {stats.leaderboard.map((entry) => {
+                      const isCurrentUser = user && entry.userId === user.id;
+                      return (
+                        <div key={entry.userId} className={styles.mobileCard} style={{
+                          backgroundColor: isCurrentUser ? "#1e3a8a" : undefined,
+                          border: isCurrentUser ? "2px solid #3b82f6" : undefined,
+                        }}>
+                          <div className={styles.mobileCardHeader}>
+                            <div className={styles.mobileCardTitle} style={{ 
+                              color: isCurrentUser ? "#93c5fd" : undefined,
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px"
+                            }}>
+                              {getRankIcon(entry.rank)}
+                              {entry.username}
+                              {isCurrentUser && (
+                                <span style={{
+                                  background: "#3b82f6",
+                                  color: "white",
+                                  padding: "2px 8px",
+                                  borderRadius: "12px",
+                                  fontSize: "10px",
+                                  fontWeight: "600"
+                                }}>
+                                  {t("you")}
+                                </span>
+                              )}
+                            </div>
+                            <div className={styles.mobileCardStatus} style={{
+                              backgroundColor: getRankColor(entry.rank),
+                              color: "white"
+                            }}>
+                              #{entry.rank}
+                            </div>
+                          </div>
+                          <div className={styles.mobileCardContent}>
+                            <div className={styles.mobileCardItem}>
+                              <div className={styles.mobileCardLabel}>{t("totalReports")}</div>
+                              <div className={styles.mobileCardValue}>{entry.totalReports}</div>
+                            </div>
+                            <div className={styles.mobileCardItem}>
+                              <div className={styles.mobileCardLabel}>{t("resolvedReports")}</div>
+                              <div className={styles.mobileCardValue} style={{ color: "#10b981" }}>{entry.resolvedReports}</div>
+                            </div>
+                            <div className={styles.mobileCardItem}>
+                              <div className={styles.mobileCardLabel}>{t("pendingReports")}</div>
+                              <div className={styles.mobileCardValue} style={{ color: "#f59e0b" }}>{entry.pendingReports}</div>
+                            </div>
+                            <div className={styles.mobileCardItem}>
+                              <div className={styles.mobileCardLabel}>Success Rate</div>
+                              <div className={styles.mobileCardValue}>
+                                {entry.totalReports > 0 
+                                  ? `${Math.round((entry.resolvedReports / entry.totalReports) * 100)}%`
+                                  : "0%"
+                                }
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -438,7 +503,7 @@ export default function Leaderboard() {
                 <p style={{ marginBottom: "20px", color: "#94a3b8" }}>
                   Help make your city better by reporting civic issues and contributing to community improvement.
                 </p>
-                <a 
+                <Link 
                   href="/#report-form" 
                   className={styles.button}
                   style={{ 
@@ -452,7 +517,7 @@ export default function Leaderboard() {
                   }}
                 >
                   {t("reportButton")}
-                </a>
+                </Link>
               </div>
             </>
           )}

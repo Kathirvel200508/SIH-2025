@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { setAuthCookie, getAuthFromCookie, clearAuthCookie } from "@/utils/cookies";
 
 type User = {
   id: string;
@@ -12,6 +13,7 @@ type UserContextValue = {
   setUser: (user: User | null) => void;
   setToken: (token: string | null) => void;
   isLoggedIn: boolean;
+  logout: () => void;
 };
 
 const UserContext = createContext<UserContextValue | undefined>(undefined);
@@ -21,42 +23,37 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    // Load token from localStorage on mount
-    const savedToken = localStorage.getItem("citizen_token");
-    if (savedToken) {
-      setToken(savedToken);
-      // Try to decode user info from token or fetch from API
-      // For now, we'll store user info in localStorage as well
-      const savedUser = localStorage.getItem("citizen_user");
-      if (savedUser) {
-        try {
-          setUser(JSON.parse(savedUser));
-        } catch {
-          // Invalid user data, clear it
-          localStorage.removeItem("citizen_user");
-        }
-      }
+    // Check for existing authentication in cookies
+    const { token: cookieToken, role, userId, username } = getAuthFromCookie();
+    if (cookieToken && role === 'citizen' && userId && username) {
+      setToken(cookieToken);
+      setUser({ id: userId, username, role: 'citizen' });
     }
   }, []);
 
   const handleSetUser = (newUser: User | null) => {
     setUser(newUser);
-    if (newUser) {
-      localStorage.setItem("citizen_user", JSON.stringify(newUser));
-    } else {
-      localStorage.removeItem("citizen_user");
+    if (newUser && token) {
+      // Persist user data to cookies when both user and token are set
+      setAuthCookie(token, newUser.role, newUser.id, newUser.username);
     }
   };
 
   const handleSetToken = (newToken: string | null) => {
     setToken(newToken);
-    if (newToken) {
-      localStorage.setItem("citizen_token", newToken);
-    } else {
-      localStorage.removeItem("citizen_token");
-      // Clear user when token is cleared
+    if (!newToken) {
       handleSetUser(null);
+      clearAuthCookie();
+    } else if (user) {
+      // Persist token to cookies when both token and user are set
+      setAuthCookie(newToken, user.role, user.id, user.username);
     }
+  };
+
+  const logout = () => {
+    setUser(null);
+    setToken(null);
+    clearAuthCookie();
   };
 
   const value: UserContextValue = {
@@ -65,6 +62,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     setUser: handleSetUser,
     setToken: handleSetToken,
     isLoggedIn: !!token && !!user,
+    logout,
   };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

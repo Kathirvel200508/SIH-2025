@@ -7,6 +7,9 @@ export interface Report {
     title: string;
     description: string;
     priority: ReportPriority;
+    priorityScore?: number;
+    upvotes?: number;
+    upvotedBy?: string[];
     status: ReportStatus;
     category: ReportCategory;
     createdAt: string;
@@ -23,12 +26,21 @@ export declare class ReportsService {
     private readonly notifications;
     constructor(notifications: NotificationsService);
     private reports;
-    create(report: Omit<Report, 'id' | 'createdAt' | 'status'>): Report;
+    create(report: Omit<Report, 'id' | 'createdAt' | 'status' | 'upvotes' | 'upvotedBy' | 'priority'>): Report;
     list(filters?: {
         category?: ReportCategory;
         locationQuery?: string;
     }): Report[];
     listByUser(userId: string): Report[];
     update(id: string, update: Partial<Pick<Report, 'status' | 'priority'>>): Report | undefined;
+    upvote(id: string, userId: string): Report | undefined;
+    listByArea(userLocation?: {
+        lat: number;
+        lng: number;
+    }, radiusKm?: number): Report[];
+    private calculateDistance;
+    private deg2rad;
+    addTestReports(): number;
+    private priorityToBaseScore;
     private seedSampleData;
 }

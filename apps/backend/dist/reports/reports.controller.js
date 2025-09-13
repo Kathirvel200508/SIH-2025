@@ -21,7 +21,6 @@ const roles_guard_1 = require("../auth/roles.guard");
 class CreateReportDto {
     title;
     description;
-    priority;
     category;
     attachments;
     location;
@@ -52,7 +51,6 @@ let ReportsController = class ReportsController {
         return this.reportsService.create({
             title: body.title,
             description: body.description,
-            priority: body.priority,
             category: body.category ?? 'other',
             createdByUserId: userId,
             createdByUsername: username,
@@ -81,7 +79,6 @@ let ReportsController = class ReportsController {
         return this.reportsService.create({
             title: body.title,
             description: body.description,
-            priority: body.priority,
             category: body.category ?? 'other',
             createdByUserId: userId,
             createdByUsername: username,
@@ -93,12 +90,27 @@ let ReportsController = class ReportsController {
     list(category, q) {
         return this.reportsService.list({ category, locationQuery: q });
     }
+    listCommunity(req, lat, lng) {
+        const userLocation = lat && lng ? { lat: parseFloat(lat), lng: parseFloat(lng) } : undefined;
+        return this.reportsService.listByArea(userLocation);
+    }
     listMine(req) {
         const userId = req.user?.userId ?? 'unknown';
         return this.reportsService.listByUser(userId);
     }
     update(id, body) {
         const updated = this.reportsService.update(id, { status: body.status, priority: body.priority });
+        if (!updated)
+            return { error: 'Not found' };
+        return updated;
+    }
+    async testSeed() {
+        const count = this.reportsService.addTestReports();
+        return { message: 'Test reports added', count };
+    }
+    upvote(id, req) {
+        const userId = req.user?.userId ?? 'unknown';
+        const updated = this.reportsService.upvote(id, userId);
         if (!updated)
             return { error: 'Not found' };
         return updated;
@@ -133,6 +145,17 @@ __decorate([
     __metadata("design:returntype", Array)
 ], ReportsController.prototype, "list", null);
 __decorate([
+    (0, common_1.Get)('community'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('citizen'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Query)('lat')),
+    __param(2, (0, common_1.Query)('lng')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, String]),
+    __metadata("design:returntype", Array)
+], ReportsController.prototype, "listCommunity", null);
+__decorate([
     (0, common_1.Get)('mine'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)('citizen'),
@@ -151,6 +174,22 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Object)
 ], ReportsController.prototype, "update", null);
+__decorate([
+    (0, common_1.Post)('test-seed'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], ReportsController.prototype, "testSeed", null);
+__decorate([
+    (0, common_1.Post)(':id/upvote'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('citizen'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Object)
+], ReportsController.prototype, "upvote", null);
 exports.ReportsController = ReportsController = __decorate([
     (0, common_1.Controller)('reports'),
     __metadata("design:paramtypes", [reports_service_1.ReportsService])

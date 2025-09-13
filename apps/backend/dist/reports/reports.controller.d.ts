@@ -3,7 +3,6 @@ import type { Report, ReportPriority, ReportStatus, ReportCategory } from './rep
 declare class CreateReportDto {
     title: string;
     description: string;
-    priority: ReportPriority;
     category: ReportCategory;
     attachments?: string[];
     location?: {
@@ -18,11 +17,19 @@ export declare class ReportsController {
     testCreate(body: CreateReportDto): Promise<Report>;
     create(req: any, body: CreateReportDto): Promise<Report>;
     list(category?: ReportCategory, q?: string): Report[];
+    listCommunity(req: any, lat?: string, lng?: string): Report[];
     listMine(req: any): Report[];
     update(id: string, body: {
         status?: ReportStatus;
         priority?: ReportPriority;
     }): Report | {
+        error: string;
+    };
+    testSeed(): Promise<{
+        message: string;
+        count: number;
+    }>;
+    upvote(id: string, req: any): Report | {
         error: string;
     };
 }

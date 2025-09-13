@@ -1,6 +1,7 @@
 import Head from "next/head";
 import { useEffect, useState } from "react";
 import styles from "@/styles/Home.module.css";
+import { setAuthCookie, getAuthFromCookie, clearAuthCookie } from "@/utils/cookies";
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
 
 type Report = {
@@ -8,6 +9,8 @@ type Report = {
   title: string;
   description: string;
   priority: "low" | "medium" | "high";
+  upvotes?: number;
+  upvotedBy?: string[];
   status: "in_progress" | "accepted" | "rejected" | "finished";
   category?: "sewage" | "electricity" | "waste" | "roads" | "transport" | "other";
   createdAt: string;
@@ -48,6 +51,8 @@ export default function Home() {
 
   const [filterCategory, setFilterCategory] = useState<Report["category"] | "">("");
   const [filterQ, setFilterQ] = useState<string>("");
+  const [prioritySort, setPrioritySort] = useState<boolean>(false);
+  const [priorityFilter, setPriorityFilter] = useState<Report["priority"] | "all">('all');
 
   async function loadReports(tk: string) {
     const params = new URLSearchParams();
@@ -57,12 +62,18 @@ export default function Home() {
     if (!res.ok) throw new Error(await res.text());
     const data: Report[] = await res.json();
     const rank: Record<Report["priority"], number> = { high: 0, medium: 1, low: 2 };
-    const sorted = [...data].sort((a, b) => {
-      const pr = rank[a.priority] - rank[b.priority];
-      if (pr !== 0) return pr;
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
-    setReports(sorted);
+    let arr = [...data];
+    if (priorityFilter !== 'all') arr = arr.filter((r) => r.priority === priorityFilter);
+    if (prioritySort) {
+      arr.sort((a,b) => {
+        const pr = rank[a.priority] - rank[b.priority];
+        if (pr !== 0) return pr;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+    } else {
+      arr.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
+    setReports(arr);
   }
 
   function normalizeUrl(u: string): string {
@@ -88,8 +99,20 @@ export default function Home() {
   }
 
   useEffect(() => {
-    const saved = localStorage.getItem("admin_token");
-    if (saved) setToken(saved);
+    // Check for existing authentication in cookies
+    const { token: cookieToken, role } = getAuthFromCookie();
+    if (cookieToken && role === 'admin') {
+      setToken(cookieToken);
+    } else {
+      // Fallback to localStorage for backward compatibility
+      const saved = localStorage.getItem("admin_token");
+      if (saved) {
+        setToken(saved);
+        // Migrate to cookies
+        setAuthCookie(saved, 'admin');
+        localStorage.removeItem("admin_token");
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -102,7 +125,7 @@ export default function Home() {
         setLoadError(err.message || "Failed to load reports");
       }
     })();
-  }, [token, filterCategory, filterQ]);
+  }, [token, filterCategory, filterQ, prioritySort, priorityFilter]);
 
   useEffect(() => {
     // Derive missing location names client-side for display
@@ -219,8 +242,8 @@ export default function Home() {
       if (data.user.role !== "admin") {
         throw new Error("Use an admin account to view reports");
       }
-      localStorage.setItem("admin_token", data.token);
       setToken(data.token);
+      setAuthCookie(data.token, data.user.role);
     } catch (err: any) {
       setLoginError(err.message || "Login failed");
     }
@@ -244,6 +267,11 @@ export default function Home() {
     } finally {
       setSavingId(null);
     }
+  }
+
+  function handleLogout() {
+    setToken(null);
+    clearAuthCookie();
   }
 
   return (
@@ -284,11 +312,23 @@ export default function Home() {
           ) : (
             <>
             <div className={styles.card}>
-              <h2>Reports</h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h2 style={{ margin: 0 }}>Reports</h2>
+                <button className={`${styles.button} ${styles.secondary}`} onClick={handleLogout}>
+                  Logout
+                </button>
+              </div>
               <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12, flexWrap: 'wrap' }}>
                 <button className={styles.button} onClick={() => setShowMap((v) => !v)}>
                   {showMap ? 'Hide map' : 'Show map'}
                 </button>
+                <button className={styles.button} onClick={() => setPrioritySort((v)=>!v)} title="Toggle priority sort">🚦</button>
+                <select className={styles.select} value={priorityFilter} onChange={(e)=>setPriorityFilter(e.target.value as any)}>
+                  <option value="all">All</option>
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                </select>
                 {showMap && (
                   <select className={styles.select} value={mapMode} onChange={(e) => setMapMode(e.target.value as any)}>
                     <option value="markers">Markers</option>
@@ -315,6 +355,7 @@ export default function Home() {
                   <thead className={styles.thead}>
                     <tr>
                       <th>Priority</th>
+                      <th>Upvotes</th>
                       <th>Category</th>
                       <th>Status</th>
                       <th>Title</th>
@@ -329,11 +370,27 @@ export default function Home() {
                     {reports.map((r) => (
                       <tr key={r.id}>
                         <td>
-                          <select value={r.priority} onChange={(e) => updateReport(r.id, { priority: e.target.value as Report["priority"] })} disabled={savingId === r.id}>
-                            <option value="low">Low</option>
-                            <option value="medium">Medium</option>
-                            <option value="high">High</option>
-                          </select>
+                          <span style={{ padding: '2px 8px', borderRadius: 999, fontWeight: 600, background: r.priority==='high'?'#fee2e2': r.priority==='medium'?'#fef9c3':'#dcfce7', color: r.priority==='high'?'#991b1b': r.priority==='medium'?'#92400e':'#166534', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <span style={{ 
+                              width: '8px', 
+                              height: '8px', 
+                              borderRadius: '50%', 
+                              backgroundColor: r.priority === 'high' ? '#dc2626' : r.priority === 'medium' ? '#d97706' : '#16a34a',
+                              display: 'inline-block'
+                            }}></span>
+                            {r.priority === 'high' ? 'High' : r.priority === 'medium' ? 'Medium' : 'Low'}
+                          </span>
+                        </td>
+                        <td>
+                          <span style={{ 
+                            display: 'inline-flex', 
+                            alignItems: 'center', 
+                            gap: '4px',
+                            fontWeight: 600,
+                            color: r.upvotes && r.upvotes > 0 ? '#059669' : '#6b7280'
+                          }}>
+                            👍 {r.upvotes || 0}
+                          </span>
                         </td>
                         <td>{r.category || '-'}</td>
                         <td>

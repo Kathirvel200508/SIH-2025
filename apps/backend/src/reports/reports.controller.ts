@@ -8,7 +8,6 @@ import { RolesGuard } from '../auth/roles.guard';
 class CreateReportDto {
   title!: string;
   description!: string;
-  priority!: ReportPriority;
   category!: ReportCategory;
   attachments?: string[];
   location?: { lat: number; lng: number };
@@ -47,7 +46,6 @@ export class ReportsController {
     return this.reportsService.create({
       title: body.title,
       description: body.description,
-      priority: body.priority,
       category: body.category ?? 'other',
       createdByUserId: userId,
       createdByUsername: username,
@@ -86,7 +84,6 @@ export class ReportsController {
     return this.reportsService.create({
       title: body.title,
       description: body.description,
-      priority: body.priority,
       category: body.category ?? 'other',
       createdByUserId: userId,
       createdByUsername: username,
@@ -103,6 +100,14 @@ export class ReportsController {
     return this.reportsService.list({ category, locationQuery: q });
   }
 
+  @Get('community')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('citizen')
+  listCommunity(@Req() req: any, @Query('lat') lat?: string, @Query('lng') lng?: string): Report[] {
+    const userLocation = lat && lng ? { lat: parseFloat(lat), lng: parseFloat(lng) } : undefined;
+    return this.reportsService.listByArea(userLocation);
+  }
+
   @Get('mine')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('citizen')
@@ -116,6 +121,23 @@ export class ReportsController {
   @Roles('admin')
   update(@Param('id') id: string, @Body() body: { status?: ReportStatus; priority?: ReportPriority }): Report | { error: string } {
     const updated = this.reportsService.update(id, { status: body.status, priority: body.priority });
+    if (!updated) return { error: 'Not found' };
+    return updated;
+  }
+
+  // Test endpoint to add some reports in common areas
+  @Post('test-seed')
+  async testSeed(): Promise<{ message: string; count: number }> {
+    const count = this.reportsService.addTestReports();
+    return { message: 'Test reports added', count };
+  }
+
+  @Post(':id/upvote')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('citizen')
+  upvote(@Param('id') id: string, @Req() req: any): Report | { error: string } {
+    const userId = req.user?.userId ?? 'unknown';
+    const updated = this.reportsService.upvote(id, userId);
     if (!updated) return { error: 'Not found' };
     return updated;
   }
